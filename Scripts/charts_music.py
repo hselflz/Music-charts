@@ -1,8 +1,7 @@
 import pandas as pd
 from sqlalchemy import create_engine
 
-#password_git = input("Enter your MySQL password: ")
-password_git = "75537342"
+password_git = input("Enter your MySQL password: ")
 engine = create_engine(
        "mysql+pymysql://root:" + password_git + "@localhost/music_charts"
 )
@@ -59,7 +58,7 @@ most_consistent_artist(df)
 
 #sacar el df de las 10 canciones más populares
 
-def popularity_characteristics(df, top_n=10):
+def popularity_characteristics(df, top_n=5):
     top_n_songs = top_songs(df, top_n=top_n)
 
     mean_danceability = top_n_songs["danceability"].mean()
@@ -78,3 +77,8 @@ def popularity_characteristics(df, top_n=10):
     print(f"So, the maximum value is: {popularity_factors[factor_mas_importante]:.2f} for {factor_mas_importante}")
 
 popularity_characteristics(df, top_n=5)
+
+def top_songs_by_country(df, country, top_n=10):
+    country_songs = df[df["country"] == country]
+    top_country_songs = top_songs(country_songs, top_n=top_n)
+    return top_country_songs
