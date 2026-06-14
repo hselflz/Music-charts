@@ -1,7 +1,8 @@
 import pandas as pd
 from sqlalchemy import create_engine
 
-password_git = input("Enter your MySQL password: ")
+#password_git = input("Enter your MySQL password: ")
+password_git = "75537342"
 engine = create_engine(
        "mysql+pymysql://root:" + password_git + "@localhost/music_charts"
 )
@@ -12,12 +13,24 @@ df = pd.read_sql(
 )
 print(df.info())
 
-df.info()
+print(df.head(5))
 
-def top_songs(df):
-    song_top = df.groupby("song_title")[("streams")].sum()
-    song_top = song_top.sort_values(ascending=False)    
-    print(f"Song with most streams: {song_top.index[0]}, with {song_top.iloc[0]} streams")
+def top_songs(df, top_n=10):
+    song_top = (
+        df.groupby("song_title", as_index=False)
+          .agg(
+              streams=("streams", "sum"),
+              artist=("artist", "first"),
+              country=("country", "first"),
+              danceability=("danceability", "mean"),
+              energy=("energy", "mean"),
+              valence=("valence", "mean"),
+              weeks_on_chart=("chart_date", "count")
+          )
+          .sort_values("streams", ascending=False)
+    )
+    return song_top.head(top_n)
+
 top_songs(df)
 
 def top_artist(df):
@@ -44,7 +57,24 @@ def most_consistent_artist(df):
     print(f"Most consistent artist: {consistent_artist.index[0]}, with {consistent_artist.iloc[0]} weeks on the chart")
 most_consistent_artist(df)
 
-def analyze_popularity_factors(df):
-    correlation = df.groupby("streams")[["danceability", "valence","energy"]].sum()
-    print(correlation)
-analyze_popularity_factors(df)
+#sacar el df de las 10 canciones más populares
+
+def popularity_characteristics(df, top_n=10):
+    top_n_songs = top_songs(df, top_n=top_n)
+
+    mean_danceability = top_n_songs["danceability"].mean()
+    mean_energy = top_n_songs["energy"].mean()
+    mean_valence = top_n_songs["valence"].mean()
+    
+    popularity_factors = {
+        "danceability": mean_danceability,
+        "energy": mean_energy,
+        "valence": mean_valence
+    }
+
+    factor_mas_importante = max(popularity_factors, key=popularity_factors.get)
+
+    print(f"Average characteristics in top {top_n} songs: {mean_danceability:.2f} danceability, {mean_energy:.2f} energy and {mean_valence:.2f} valence")
+    print(f"So, the maximum value is: {popularity_factors[factor_mas_importante]:.2f} for {factor_mas_importante}")
+
+popularity_characteristics(df, top_n=5)
