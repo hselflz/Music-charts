@@ -18,13 +18,14 @@ def top_songs(df, top_n=10):
     song_top = (
         df.groupby("song_title", as_index=False)
           .agg(
-              streams=("streams", "sum"),
-              artist=("artist", "first"),
-              country=("country", "first"),
-              danceability=("danceability", "mean"),
-              energy=("energy", "mean"),
-              valence=("valence", "mean"),
-              weeks_on_chart=("chart_date", "count")
+            streams=("streams", "sum"),
+            artist=("artist", "first"),
+            country=("country", "first"),
+            danceability=("danceability", "mean"),
+            energy=("energy", "mean"),
+            valence=("valence", "mean"),
+            weeks_on_chart=("chart_date", "count"),
+            duration_sec=("duration_sec", "first")
           )
           .sort_values("streams", ascending=False)
     )
@@ -68,11 +69,11 @@ def popularity_characteristics(df, top_n=5):
     mean_danceability = top_n_songs["danceability"].mean()
     mean_energy = top_n_songs["energy"].mean()
     mean_valence = top_n_songs["valence"].mean()
-    
+
     popularity_factors = {
         "danceability": mean_danceability,
         "energy": mean_energy,
-        "valence": mean_valence
+        "valence": mean_valence,
     }
 
     factor_mas_importante = max(popularity_factors, key=popularity_factors.get)
@@ -106,9 +107,11 @@ def prom_artist (df):
     print(f"Artist with highest average streams: {artist_prom.index[0]}, with {artist_prom.iloc[0]:.2f} average streams")
 prom_artist(df)
 
-def duration_prom(df): 
-    duration_prom = df.groupby("streams")[("duration_sec")].mean()
-    duration_prom = duration_prom.sort_values(ascending=False)
-    print(f"Duration with highest average streams: {duration_prom.index[0]}, with {duration_prom.iloc[0]:.2f} average duration in seconds")
-    print(f"So, the duration in minutes is: {duration_prom.iloc[0]/60:.2f} minutes")
-duration_prom(df)
+
+#cual es el promedio de duracion de las canciones mas populares?
+def duration_prom(df, top_n=5):
+    top_n_songs = top_songs(df, top_n=top_n)
+    duration_prom = top_n_songs["duration_sec"].mean()
+    print(f"Average duration in seconds for top {top_n} songs: {duration_prom:.2f}")
+    print(f"So, the duration in minutes is: {duration_prom/60:.2f} minutes")
+duration_prom(df, top_n=5)
