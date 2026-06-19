@@ -1,5 +1,6 @@
 import pandas as pd
 from sqlalchemy import create_engine
+import matplotlib.pyplot as plt
 
 password_git = input("Enter your MySQL password: ")
 engine = create_engine(
@@ -115,3 +116,59 @@ def duration_prom(df, top_n=5):
     print(f"Average duration in seconds for top {top_n} songs: {duration_prom:.2f}")
     print(f"So, the duration in minutes is: {duration_prom/60:.2f} minutes")
 duration_prom(df, top_n=5)
+
+#the next step is made a visualization of the 
+def plot_top_countries(df, top_n=5):
+    plt.pie(top_country(df, top_n=5), labels=top_country(df, top_n=5).index, autopct='%1.1f%%')
+    plt.title("Top 5 countries by streams")
+    plt.show()
+plot_top_countries(df, top_n=5)
+
+def plot_top_artists(df, top_n=5):
+    top_artists = df.groupby("artist")[("streams")].sum().sort_values(ascending=False).head(top_n)
+    plt.bar(top_artists.index, top_artists.values)
+    plt.title(f"Top {top_n} artists by streams")
+    plt.xlabel("Artist")
+    plt.ylabel("Total Streams")
+    plt.xticks(rotation=45)
+    plt.show()
+plot_top_artists(df, top_n=5)
+
+def plot_top_songs(df, top_n=10):
+    top_songs_data = top_songs(df, top_n=top_n)
+    plt.bar(top_songs_data["song_title"], top_songs_data["streams"])
+    plt.title(f"Top {top_n} songs by streams")
+    plt.xlabel("Song Title")
+    plt.ylabel("Total Streams")
+    plt.xticks(rotation=90)
+    plt.show()
+plot_top_songs(df, top_n=10)
+
+def plot_streams_over_time(df, top_n=10):
+    df["chart_date"] = pd.to_datetime(df["chart_date"])
+    df["month"] = df["chart_date"].dt.to_period("M")
+
+    for song in top_songs(df, top_n=top_n)["song_title"]:
+        song_data = df[df["song_title"] == song]
+
+        monthly_streams = (
+            song_data
+            .groupby("month")["streams"]
+            .mean()
+            .reset_index()
+        )
+
+        plt.plot(
+            monthly_streams["month"].astype(str),
+            monthly_streams["streams"],
+            label=song
+        )
+
+    plt.legend()
+    plt.xlabel("Month")
+    plt.ylabel("Average Streams")
+    plt.title(f"Top {top_n} Songs: Streams Over Time")
+    plt.show()
+
+plot_streams_over_time(df, top_n=10)
+
